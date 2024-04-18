@@ -10,6 +10,7 @@ Available at [arXiv:2002.01680](https://arxiv.org/abs/2002.01680).
 ### Dependencies
 
 Recent versions of the following packages for Python 3 are required:
+
 * PyTorch 1.2.0
 * DGL 0.3.1
 * NetworkX 2.3
@@ -22,6 +23,7 @@ Dependencies for the preprocessing code are not listed here.
 ### Datasets
 
 The preprocessed datasets are available at:
+
 * IMDb - [Dropbox](https://www.dropbox.com/s/g0btk9ctr1es39x/IMDB_processed.zip?dl=0)
 * DBLP - [Dropbox](https://www.dropbox.com/s/yh4grpeks87ugr2/DBLP_processed.zip?dl=0)
 * Last.fm - [Dropbox](https://www.dropbox.com/s/jvlbs09pz6zwcka/LastFM_processed.zip?dl=0)
@@ -44,7 +46,7 @@ For more information about the available options of the model, you may check by 
 
 If you find MAGNN useful in your research, please cite the following paper:
 
-	@inproceedings{fu2020magnn,
+ @inproceedings{fu2020magnn,
      title={MAGNN: Metapath Aggregated Graph Neural Network for Heterogeneous Graph Embedding},
      author={Xinyu Fu and Jiani Zhang and Ziqiao Meng and Irwin King},
      booktitle = {WWW},

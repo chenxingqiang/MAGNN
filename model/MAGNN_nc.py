@@ -10,16 +10,18 @@ fc_switch = False
 
 # multi-layer support
 class MAGNN_nc_layer(nn.Module):
-    def __init__(self,
-                 num_metapaths_list,
-                 num_edge_type,
-                 etypes_lists,
-                 in_dim,
-                 out_dim,
-                 num_heads,
-                 attn_vec_dim,
-                 rnn_type='gru',
-                 attn_drop=0.5):
+    def __init__(
+        self,
+        num_metapaths_list,
+        num_edge_type,
+        etypes_lists,
+        in_dim,
+        out_dim,
+        num_heads,
+        attn_vec_dim,
+        rnn_type="gru",
+        attn_drop=0.5,
+    ):
         super(MAGNN_nc_layer, self).__init__()
         self.in_dim = in_dim
         self.out_dim = out_dim
@@ -27,13 +29,13 @@ class MAGNN_nc_layer(nn.Module):
 
         # etype-specific parameters
         r_vec = None
-        if rnn_type == 'TransE0':
+        if rnn_type == "TransE0":
             r_vec = nn.Parameter(torch.empty(size=(num_edge_type // 2, in_dim)))
-        elif rnn_type == 'TransE1':
+        elif rnn_type == "TransE1":
             r_vec = nn.Parameter(torch.empty(size=(num_edge_type, in_dim)))
-        elif rnn_type == 'RotatE0':
+        elif rnn_type == "RotatE0":
             r_vec = nn.Parameter(torch.empty(size=(num_edge_type // 2, in_dim // 2, 2)))
-        elif rnn_type == 'RotatE1':
+        elif rnn_type == "RotatE1":
             r_vec = nn.Parameter(torch.empty(size=(num_edge_type, in_dim // 2, 2)))
         if r_vec is not None:
             nn.init.xavier_normal_(r_vec.data, gain=1.414)
@@ -41,15 +43,19 @@ class MAGNN_nc_layer(nn.Module):
         # ctr_ntype-specific layers
         self.ctr_ntype_layers = nn.ModuleList()
         for i in range(len(num_metapaths_list)):
-            self.ctr_ntype_layers.append(MAGNN_ctr_ntype_specific(num_metapaths_list[i],
-                                                                  etypes_lists[i],
-                                                                  in_dim,
-                                                                  num_heads,
-                                                                  attn_vec_dim,
-                                                                  rnn_type,
-                                                                  r_vec,
-                                                                  attn_drop,
-                                                                  use_minibatch=False))
+            self.ctr_ntype_layers.append(
+                MAGNN_ctr_ntype_specific(
+                    num_metapaths_list[i],
+                    etypes_lists[i],
+                    in_dim,
+                    num_heads,
+                    attn_vec_dim,
+                    rnn_type,
+                    r_vec,
+                    attn_drop,
+                    use_minibatch=False,
+                )
+            )
 
         # note that the acutal input dimension should consider the number of heads
         # as multiple head outputs are concatenated together
@@ -66,9 +72,15 @@ class MAGNN_nc_layer(nn.Module):
         g_lists, features, type_mask, edge_metapath_indices_lists = inputs
 
         # ctr_ntype-specific layers
-        h = torch.zeros(type_mask.shape[0], self.in_dim * self.num_heads, device=features.device)
-        for i, (g_list, edge_metapath_indices_list, ctr_ntype_layer) in enumerate(zip(g_lists, edge_metapath_indices_lists, self.ctr_ntype_layers)):
-            h[np.where(type_mask == i)[0]] = ctr_ntype_layer((g_list, features, type_mask, edge_metapath_indices_list))
+        h = torch.zeros(
+            type_mask.shape[0], self.in_dim * self.num_heads, device=features.device
+        )
+        for i, (g_list, edge_metapath_indices_list, ctr_ntype_layer) in enumerate(
+            zip(g_lists, edge_metapath_indices_lists, self.ctr_ntype_layers)
+        ):
+            h[np.where(type_mask == i)[0]] = ctr_ntype_layer(
+                (g_list, features, type_mask, edge_metapath_indices_list)
+            )
 
         if fc_switch:
             h_fc = self.fc1(features) + self.fc2(h)
@@ -78,24 +90,31 @@ class MAGNN_nc_layer(nn.Module):
 
 
 class MAGNN_nc(nn.Module):
-    def __init__(self,
-                 num_layers,
-                 num_metapaths_list,
-                 num_edge_type,
-                 etypes_lists,
-                 feats_dim_list,
-                 hidden_dim,
-                 out_dim,
-                 num_heads,
-                 attn_vec_dim,
-                 rnn_type='gru',
-                 dropout_rate=0.5):
+    def __init__(
+        self,
+        num_layers,
+        num_metapaths_list,
+        num_edge_type,
+        etypes_lists,
+        feats_dim_list,
+        hidden_dim,
+        out_dim,
+        num_heads,
+        attn_vec_dim,
+        rnn_type="gru",
+        dropout_rate=0.5,
+    ):
         super(MAGNN_nc, self).__init__()
         self.num_layers = num_layers
         self.hidden_dim = hidden_dim
 
         # ntype-specific transformation
-        self.fc_list = nn.ModuleList([nn.Linear(feats_dim, hidden_dim, bias=True) for feats_dim in feats_dim_list])
+        self.fc_list = nn.ModuleList(
+            [
+                nn.Linear(feats_dim, hidden_dim, bias=True)
+                for feats_dim in feats_dim_list
+            ]
+        )
         # feature dropout after trainsformation
         if dropout_rate > 0:
             self.feat_drop = nn.Dropout(dropout_rate)
@@ -109,17 +128,41 @@ class MAGNN_nc(nn.Module):
         self.layers = nn.ModuleList()
         # hidden layers
         for l in range(num_layers - 1):
-            self.layers.append(MAGNN_nc_layer(num_metapaths_list, num_edge_type, etypes_lists, hidden_dim, hidden_dim,
-                                              num_heads, attn_vec_dim, rnn_type, attn_drop=dropout_rate))
+            self.layers.append(
+                MAGNN_nc_layer(
+                    num_metapaths_list,
+                    num_edge_type,
+                    etypes_lists,
+                    hidden_dim,
+                    hidden_dim,
+                    num_heads,
+                    attn_vec_dim,
+                    rnn_type,
+                    attn_drop=dropout_rate,
+                )
+            )
         # output projection layer
-        self.layers.append(MAGNN_nc_layer(num_metapaths_list, num_edge_type, etypes_lists, hidden_dim, out_dim,
-                                          num_heads, attn_vec_dim, rnn_type, attn_drop=dropout_rate))
+        self.layers.append(
+            MAGNN_nc_layer(
+                num_metapaths_list,
+                num_edge_type,
+                etypes_lists,
+                hidden_dim,
+                out_dim,
+                num_heads,
+                attn_vec_dim,
+                rnn_type,
+                attn_drop=dropout_rate,
+            )
+        )
 
     def forward(self, inputs, target_node_indices):
         g_lists, features_list, type_mask, edge_metapath_indices_lists = inputs
 
         # ntype-specific transformation
-        transformed_features = torch.zeros(type_mask.shape[0], self.hidden_dim, device=features_list[0].device)
+        transformed_features = torch.zeros(
+            type_mask.shape[0], self.hidden_dim, device=features_list[0].device
+        )
         for i, fc in enumerate(self.fc_list):
             node_indices = np.where(type_mask == i)[0]
             transformed_features[node_indices] = fc(features_list[i])
@@ -130,7 +173,9 @@ class MAGNN_nc(nn.Module):
             h, _ = self.layers[l]((g_lists, h, type_mask, edge_metapath_indices_lists))
             h = F.elu(h)
         # output projection layer
-        logits, h = self.layers[-1]((g_lists, h, type_mask, edge_metapath_indices_lists))
+        logits, h = self.layers[-1](
+            (g_lists, h, type_mask, edge_metapath_indices_lists)
+        )
 
         # return only the target nodes' logits and embeddings
         return logits[target_node_indices], h[target_node_indices]

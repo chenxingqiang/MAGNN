@@ -10,9 +10,15 @@ def get_metapath_adjacency_matrix(adjM, type_mask, metapath):
     :param metapath
     :return: a list of metapath-based adjacency matrices
     """
-    out_adjM = scipy.sparse.csr_matrix(adjM[np.ix_(type_mask == metapath[0], type_mask == metapath[1])])
+    out_adjM = scipy.sparse.csr_matrix(
+        adjM[np.ix_(type_mask == metapath[0], type_mask == metapath[1])]
+    )
     for i in range(1, len(metapath) - 1):
-        out_adjM = out_adjM.dot(scipy.sparse.csr_matrix(adjM[np.ix_(type_mask == metapath[i], type_mask == metapath[i + 1])]))
+        out_adjM = out_adjM.dot(
+            scipy.sparse.csr_matrix(
+                adjM[np.ix_(type_mask == metapath[i], type_mask == metapath[i + 1])]
+            )
+        )
     return out_adjM.toarray()
 
 
@@ -39,26 +45,36 @@ def get_metapath_neighbor_pairs(M, type_mask, expected_metapaths):
         # e.g., we only need to consider 0-1-2 for the metapath 0-1-2-1-0
         metapath_to_target = {}
         for source in (type_mask == metapath[0]).nonzero()[0]:
-            for target in (type_mask == metapath[(len(metapath) - 1) // 2]).nonzero()[0]:
+            for target in (type_mask == metapath[(len(metapath) - 1) // 2]).nonzero()[
+                0
+            ]:
                 # check if there is a possible valid path from source to target node
                 has_path = False
                 single_source_paths = nx.single_source_shortest_path(
-                    partial_g_nx, source, cutoff=(len(metapath) + 1) // 2 - 1)
+                    partial_g_nx, source, cutoff=(len(metapath) + 1) // 2 - 1
+                )
                 if target in single_source_paths:
                     has_path = True
 
-                #if nx.has_path(partial_g_nx, source, target):
+                # if nx.has_path(partial_g_nx, source, target):
                 if has_path:
-                    shortests = [p for p in nx.all_shortest_paths(partial_g_nx, source, target) if
-                                 len(p) == (len(metapath) + 1) // 2]
+                    shortests = [
+                        p
+                        for p in nx.all_shortest_paths(partial_g_nx, source, target)
+                        if len(p) == (len(metapath) + 1) // 2
+                    ]
                     if len(shortests) > 0:
-                        metapath_to_target[target] = metapath_to_target.get(target, []) + shortests
+                        metapath_to_target[target] = (
+                            metapath_to_target.get(target, []) + shortests
+                        )
         metapath_neighbor_paris = {}
         for key, value in metapath_to_target.items():
             for p1 in value:
                 for p2 in value:
-                    metapath_neighbor_paris[(p1[0], p2[0])] = metapath_neighbor_paris.get((p1[0], p2[0]), []) + [
-                        p1 + p2[-2::-1]]
+                    metapath_neighbor_paris[(p1[0], p2[0])] = (
+                        metapath_neighbor_paris.get((p1[0], p2[0]), [])
+                        + [p1 + p2[-2::-1]]
+                    )
         outs.append(metapath_neighbor_paris)
     return outs
 

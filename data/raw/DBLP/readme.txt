@@ -1,6 +1,6 @@
 This package contains the data sets used in the experiments of the following paper:
 
-Ming Ji, Yizhou Sun, Marina Danilevsky, Jiawei Han, and Jing Gao, ¡°Graph Regularized Transductive Classification on Heterogeneous Information Networks", Proc. 2010 European Conf. on Machine Learning and Principles and Practice of Knowledge Discovery in Databases (ECMLPKDD'10), Barcelona, Spain, Sept. 2010.
+Ming Ji, Yizhou Sun, Marina Danilevsky, Jiawei Han, and Jing Gao, ï¿½ï¿½Graph Regularized Transductive Classification on Heterogeneous Information Networks", Proc. 2010 European Conf. on Machine Learning and Principles and Practice of Knowledge Discovery in Databases (ECMLPKDD'10), Barcelona, Spain, Sept. 2010.
 
 
 
